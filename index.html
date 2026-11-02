@@ -1,1 +1,320 @@
-<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Brüche am Zahlenstrahl</title><style>body{font-family:Arial;background:#eef4ff;text-align:center;padding:20px}.card{background:#fff;padding:20px;border-radius:12px;max-width:900px;margin:15px auto}canvas{border:1px solid #ccc;width:100%;max-width:750px}button,select,input{font-size:18px;padding:8px;margin:5px}</style></head><body><div class="card"><h1>📏 Brüche am Zahlenstrahl</h1><div id="stars">⭐</div>Richtige Aufgaben: <span id="correct">0</span><br><br><select id="level" onchange="newTask()"><option value="leicht">⭐ Leicht</option><option value="mittel">⭐⭐ Mittel</option><option value="schwer">⭐⭐⭐ Schwer</option></select><h2 id="task"></h2><canvas id="canvas" width="800" height="180"></canvas><div id="answerArea"></div><button onclick="checkAnswer()">Prüfen</button><button onclick="newTask()">Neue Aufgabe</button><div id="feedback"></div></div><script>const canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d');let denominator,numerator,maxValue,correctValue,currentTask,userPosition=null;let correct=Number(localStorage.getItem('correct')||0);function upd(){correctEl.textContent=correct;stars.textContent=correct>=20?'🏆⭐⭐⭐':correct>=10?'⭐⭐⭐':correct>=5?'⭐⭐':'⭐';localStorage.setItem('correct',correct)}function r(a,b){return Math.floor(Math.random()*(b-a+1))+a}function draw(p,m,mark=null){ctx.clearRect(0,0,800,180);let s=60,e=740,y=90,t=p*m;ctx.beginPath();ctx.moveTo(s,y);ctx.lineTo(e,y);ctx.stroke();for(let i=0;i<=t;i++){let x=s+i*(e-s)/t;ctx.beginPath();ctx.moveTo(x,y-15);ctx.lineTo(x,y+15);ctx.stroke();if(i%p===0)ctx.fillText(i/p,x-5,y+35)}if(mark!==null){let x=s+mark*(e-s)/t;ctx.fillStyle='red';ctx.beginPath();ctx.arc(x,y,8,0,6.28);ctx.fill();ctx.fillStyle='black';}}function newTask(){feedback.innerHTML='';let l=level.value;if(l==='leicht'){denominator=r(2,5);numerator=r(1,denominator-1);maxValue=1}else if(l==='mittel'){denominator=r(2,10);numerator=r(1,denominator-1);maxValue=1}else{denominator=r(2,10);numerator=r(1,2*denominator-1);maxValue=2}correctValue=numerator/denominator;currentTask=Math.random()<0.5?'ablesen':'eintragen';if(currentTask==='ablesen'){task.innerHTML='🔍 Welcher Bruch ist markiert?';draw(denominator,maxValue,numerator);answerArea.innerHTML='<input id=z> / <input id=n>';}else{task.innerHTML='✏️ Trage '+numerator+'/'+denominator+' ein';draw(denominator,maxValue);answerArea.innerHTML='Klicke auf den Zahlenstrahl.';canvas.onclick=e=>{let rct=canvas.getBoundingClientRect(),x=e.clientX-rct.left;userPosition=((x-60)/(740-60))*maxValue;draw(denominator,maxValue);ctx.fillStyle='blue';ctx.beginPath();ctx.arc(x,90,8,0,6.28);ctx.fill();};}}function checkAnswer(){if(currentTask==='ablesen'){if(Number(z.value)===numerator&&Number(n.value)===denominator){correct++;upd();feedback.innerHTML='✅ Richtig!'}else feedback.innerHTML='❌ Richtig wäre '+numerator+'/'+denominator}else{if(userPosition===null){feedback.innerHTML='Bitte zuerst klicken.';return}if(Math.abs(userPosition-correctValue)<0.05*maxValue){correct++;upd();feedback.innerHTML='✅ Richtig!'}else feedback.innerHTML='❌ Noch einmal versuchen.'}}upd();newTask();</script></body></html>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brüche am Zahlenstrahl</title>
+
+<style>
+body{
+    font-family:Arial,sans-serif;
+    background:#eef4ff;
+    margin:0;
+    padding:20px;
+    text-align:center;
+}
+
+.card{
+    max-width:900px;
+    margin:auto;
+    background:white;
+    padding:20px;
+    border-radius:15px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.15);
+}
+
+h1{
+    color:#2563eb;
+}
+
+canvas{
+    width:100%;
+    max-width:800px;
+    border:1px solid #ccc;
+    background:white;
+}
+
+button{
+    font-size:20px;
+    padding:12px 20px;
+    margin:10px;
+    border:none;
+    border-radius:10px;
+    background:#2563eb;
+    color:white;
+}
+
+select,input{
+    font-size:20px;
+    padding:8px;
+}
+
+#feedback{
+    font-size:24px;
+    font-weight:bold;
+    margin-top:15px;
+}
+
+#stars{
+    font-size:40px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<h1>📏 Brüche am Zahlenstrahl</h1>
+
+<div id="stars">⭐</div>
+
+<p>
+Richtige Aufgaben:
+<span id="score">0</span>
+</p>
+
+<select id="level" onchange="newTask()">
+<option value="leicht">⭐ Leicht</option>
+<option value="mittel">⭐⭐ Mittel</option>
+<option value="schwer">⭐⭐⭐ Schwer</option>
+</select>
+
+<h2 id="task"></h2>
+
+<canvas id="canvas" width="800" height="220"></canvas>
+
+<div id="answerArea"></div>
+
+<button onclick="checkAnswer()">Prüfen</button>
+<button onclick="newTask()">Neue Aufgabe</button>
+
+<div id="feedback"></div>
+
+</div>
+
+<script>
+
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+let denominator;
+let numerator;
+let maxValue;
+let currentTask;
+let selectedTick = null;
+let score = Number(localStorage.getItem("bruchScore")) || 0;
+
+updateScore();
+
+function randomInt(min,max){
+    return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function updateScore(){
+
+    document.getElementById("score").textContent = score;
+
+    let stars="⭐";
+
+    if(score>=5) stars="⭐⭐";
+    if(score>=10) stars="⭐⭐⭐";
+    if(score>=20) stars="🏆⭐⭐⭐";
+
+    document.getElementById("stars").textContent = stars;
+
+    localStorage.setItem("bruchScore",score);
+}
+
+function drawLine(marked=null, solution=null){
+
+    ctx.clearRect(0,0,800,220);
+
+    const start=60;
+    const end=740;
+    const y=100;
+
+    const totalParts=maxValue*denominator;
+
+    ctx.lineWidth=3;
+
+    ctx.beginPath();
+    ctx.moveTo(start,y);
+    ctx.lineTo(end,y);
+    ctx.stroke();
+
+    for(let i=0;i<=totalParts;i++){
+
+        const x=start+(end-start)/totalParts*i;
+
+        ctx.beginPath();
+        ctx.moveTo(x,y-15);
+        ctx.lineTo(x,y+15);
+        ctx.stroke();
+
+        if(i%denominator===0){
+            ctx.fillText(i/denominator,x-5,y+40);
+        }
+    }
+
+    if(solution!==null){
+
+        const x=start+(end-start)/totalParts*solution;
+
+        ctx.fillStyle="red";
+
+        ctx.beginPath();
+        ctx.arc(x,y,8,0,2*Math.PI);
+        ctx.fill();
+
+        ctx.fillStyle="black";
+    }
+
+    if(marked!==null){
+
+        const x=start+(end-start)/totalParts*marked;
+
+        ctx.fillStyle="blue";
+
+        ctx.beginPath();
+        ctx.arc(x,y,8,0,2*Math.PI);
+        ctx.fill();
+
+        ctx.fillStyle="black";
+    }
+}
+
+function newTask(){
+
+    document.getElementById("feedback").innerHTML="";
+    selectedTick=null;
+
+    const level=document.getElementById("level").value;
+
+    if(level==="leicht"){
+        denominator=randomInt(2,5);
+        numerator=randomInt(1,denominator-1);
+        maxValue=1;
+    }
+
+    if(level==="mittel"){
+        denominator=randomInt(2,10);
+        numerator=randomInt(1,denominator-1);
+        maxValue=1;
+    }
+
+    if(level==="schwer"){
+        denominator=randomInt(2,10);
+        numerator=randomInt(1,2*denominator-1);
+        maxValue=2;
+    }
+
+    currentTask=Math.random()<0.5 ? "ablesen" : "eintragen";
+
+    if(currentTask==="ablesen"){
+
+        document.getElementById("task").innerHTML=
+            "🔍 Welcher Bruch ist markiert?";
+
+        drawLine(null,numerator);
+
+        document.getElementById("answerArea").innerHTML=
+        `
+        <input id="z" placeholder="Zähler">
+        /
+        <input id="n" placeholder="Nenner">
+        `;
+    }
+
+    else{
+
+        document.getElementById("task").innerHTML=
+            `✏️ Trage ${numerator}/${denominator} ein`;
+
+        drawLine();
+
+        document.getElementById("answerArea").innerHTML=
+        "<p>Klicke auf einen Teilstrich.</p>";
+
+        canvas.onclick=function(event){
+
+            const rect=canvas.getBoundingClientRect();
+
+            const x=event.clientX-rect.left;
+
+            const start=60;
+            const end=740;
+
+            const totalParts=maxValue*denominator;
+
+            let tick=Math.round(
+                ((x-start)/(end-start))*totalParts
+            );
+
+            tick=Math.max(0,Math.min(totalParts,tick));
+
+            selectedTick=tick;
+
+            drawLine(selectedTick);
+        };
+    }
+}
+
+function checkAnswer(){
+
+    if(currentTask==="ablesen"){
+
+        const z=Number(document.getElementById("z").value);
+        const n=Number(document.getElementById("n").value);
+
+        if(z===numerator && n===denominator){
+
+            score++;
+            updateScore();
+
+            document.getElementById("feedback").innerHTML=
+            "✅ Richtig!";
+        }
+
+        else{
+
+            document.getElementById("feedback").innerHTML=
+            `❌ Richtig wäre ${numerator}/${denominator}`;
+        }
+    }
+
+    else{
+
+        if(selectedTick===null){
+
+            document.getElementById("feedback").innerHTML=
+            "Bitte zuerst einen Teilstrich auswählen.";
+
+            return;
+        }
+
+        if(selectedTick===numerator){
+
+            score++;
+            updateScore();
+
+            document.getElementById("feedback").innerHTML=
+            "✅ Richtig!";
+        }
+
+        else{
+
+            drawLine(selectedTick,numerator);
+
+            document.getElementById("feedback").innerHTML=
+            `❌ Die rote Markierung zeigt die richtige Lösung.`;
+        }
+    }
+}
+
+newTask();
+
+</script>
+
+</body>
+</html>
